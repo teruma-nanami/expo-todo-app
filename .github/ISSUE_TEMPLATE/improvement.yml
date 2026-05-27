@@ -1,0 +1,59 @@
+name: 改善・エンハンス
+description: 既存機能の改善、リファクタ、性能改善、UX 改善などに使用します
+title: "refactor: "
+labels:
+  - improvement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 改善・エンハンス
+        既に動いている機能を改善・整理する提案です。
+        ブランチ命名は `refactor/#<このIssue番号>-<内容>` を想定しています（性能改善など type が異なる場合は `feat/` や `fix/` を使う）。
+
+  - type: textarea
+    id: target
+    attributes:
+      label: 改善対象
+      description: どのファイル / 機能 / モジュール / 運用フローを改善したいか
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_problem
+    attributes:
+      label: 現状の問題
+      description: 現状で何が困っているか、どんな技術負債が溜まっているか
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 改善後の期待
+      description: どう改善したいか、どんな状態を目指すか
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: スコープ
+      description: 影響範囲、含むもの・含まないもの
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 優先度
+      options:
+        - high (リリースブロッカー / 重大な技術負債)
+        - medium (リリース後早期に対応したい)
+        - low (時間があるときに)
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: 関連ドキュメント・コード
+      description: docs / 該当ファイルパス / 過去の議論へのリンクなど
