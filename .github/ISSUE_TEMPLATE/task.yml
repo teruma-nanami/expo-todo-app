@@ -1,0 +1,55 @@
+name: タスク（調査・ドキュメント・運用準備など）
+description: バグ・新機能・改善のいずれにも当てはまらない作業（調査、ドキュメント、運用準備、設定変更など）
+title: "chore: "
+labels:
+  - task
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## タスク
+        コード変更を伴わない作業（調査、ドキュメント整備、運用準備、外部設定変更など）に使用します。
+        ブランチ命名は `chore/#<このIssue番号>-<内容>` または `docs/#<このIssue番号>-<内容>` を想定しています。
+
+  - type: textarea
+    id: task
+    attributes:
+      label: タスク内容
+      description: 何をするか具体的に
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: 背景・なぜ必要か
+    validations:
+      required: true
+
+  - type: textarea
+    id: definition_of_done
+    attributes:
+      label: 完了条件
+      description: チェックリスト形式で。何が揃えば完了か
+      placeholder: |
+        - [ ] X を確認した
+        - [ ] Y を docs に追記した
+        - [ ] Z を Slack に共有した
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 優先度
+      options:
+        - high (リリースブロッカー)
+        - medium (リリース後早期に対応)
+        - low (時間があるときに)
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: 関連ドキュメント・コード
