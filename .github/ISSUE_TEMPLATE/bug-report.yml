@@ -1,0 +1,77 @@
+name: バグ報告
+description: 既存機能が期待通りに動かない場合に使用します
+title: "fix: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## バグ報告
+        既存機能が期待通りに動かない・エラーが発生する場合に記載してください。
+        ブランチ命名は `fix/#<このIssue番号>-<内容>` を想定しています。
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: 概要
+      description: 何がどうおかしいかを 1〜2 文で
+      placeholder: 例) 管理者ログインで Google OAuth から戻ったあとに 500 が返る
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 再現手順
+      description: 番号付きリストで具体的に
+      placeholder: |
+        1. 管理者画面のログイン画面を開く
+        2. 「Google でログイン」を押下
+        3. 同意画面で許可
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待される動作
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 実際の動作
+      description: エラーメッセージ・スタックトレース・スクショなどを添付
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: 発生環境
+      options:
+        - local
+        - staging
+        - production
+        - 不明
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 優先度
+      options:
+        - high (リリースブロッカー / 本番障害)
+        - medium (機能は動くが影響あり)
+        - low (軽微・限定的)
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: 関連ドキュメント・PR・ログ
+      description: 関連する docs / PR / Slack / CloudWatch ログへのリンクなど
