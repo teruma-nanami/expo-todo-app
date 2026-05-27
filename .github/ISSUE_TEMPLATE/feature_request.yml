@@ -1,0 +1,59 @@
+name: 新機能追加
+description: 新しい機能を追加したい場合に使用します
+title: "feat: "
+labels:
+  - feature
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 新機能追加
+        既存にない機能を新規で追加する提案です。
+        ブランチ命名は `feat/#<このIssue番号>-<内容>` を想定しています。
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: 概要
+      description: どんな機能を追加したいかを 1〜2 文で
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: 背景・なぜ必要か
+      description: ユーザー / 運営 / 開発者にとっての価値、解決したい課題
+    validations:
+      required: true
+
+  - type: textarea
+    id: behavior
+    attributes:
+      label: 期待される動作
+      description: ユーザーから見た動作、画面、API 仕様の概要
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: スコープ
+      description: 含むもの・含まないもの。MVP の範囲。
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 優先度
+      options:
+        - high (リリース必須)
+        - medium (リリース後の早い段階で実装したい)
+        - low (将来的に検討)
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: 関連ドキュメント・要件
+      description: docs/requirements や docs/features の参照リンクなど
