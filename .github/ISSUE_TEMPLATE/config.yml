@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 質問・議論
+    url: https://github.com/estra-inc/qa/discussions
+    about: バグ・機能追加・改善・タスクのいずれにも当てはまらない一般的な質問・議論はこちら
