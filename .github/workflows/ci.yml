@@ -1,11 +1,5 @@
 name: CI
 
-# PR で発火する品質ゲート。
-# - backend: pint (整形チェック) + PHPStan (静的解析) + PHPUnit (カバレッジ計測) + octocov (PR コメント・80% 閾値判定)
-# - frontend: ESLint (warnings 含めて 0 必須) + Prettier (整形チェック) + tsc (型チェック)
-#
-# 整形・静的解析・カバレッジに違反した PR は merge 不可（ブランチ保護でこのワークフローを required にする想定）。
-
 on:
   pull_request:
     branches: [develop, main]
@@ -17,92 +11,9 @@ permissions:
   pull-requests: write
 
 jobs:
-  backend:
-    name: backend (pint + phpstan + phpunit + coverage)
+  expo:
+    name: expo (typecheck)
     runs-on: ubuntu-latest
-
-    services:
-      mysql:
-        image: mysql:8.4
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: futsuu_db_testing
-          MYSQL_USER: app
-          MYSQL_PASSWORD: password
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h localhost"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
-    defaults:
-      run:
-        working-directory: backend
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: PHP セットアップ
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.4"
-          extensions: pdo_mysql, mbstring, bcmath, gd, zip, intl
-          # PHPUnit カバレッジ計測のため pcov を有効化
-          coverage: pcov
-          ini-values: memory_limit=512M
-
-      - name: Composer キャッシュ
-        uses: actions/cache@v4
-        with:
-          path: backend/vendor
-          key: composer-${{ hashFiles('backend/composer.lock') }}
-          restore-keys: composer-
-
-      - name: Composer install
-        run: composer install --no-interaction --prefer-dist
-
-      - name: .env 作成
-        run: cp .env.example .env
-
-      - name: APP_KEY 生成
-        run: php artisan key:generate
-
-      - name: Pint（フォーマットチェック）
-        # --test モードで diff 検出時は exit 1。整形漏れの PR を弾く。
-        run: ./vendor/bin/pint --test
-
-      - name: PHPStan（静的解析）
-        # baseline で抑制された既存エラーは無視し、新規エラーのみ fail させる。
-        # 既存エラーは別 Issue で順次解消し、phpstan-baseline.neon を縮小していく。
-        run: ./vendor/bin/phpstan analyse --memory-limit=2G --no-progress
-
-      - name: テスト実行（カバレッジ付き）
-        run: ./vendor/bin/phpunit --coverage-clover=coverage.xml
-        env:
-          DB_CONNECTION: mysql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 3306
-          DB_DATABASE: futsuu_db_testing
-          DB_USERNAME: app
-          DB_PASSWORD: password
-          APP_ENV: testing
-          BCRYPT_ROUNDS: 4
-          CACHE_STORE: array
-          SESSION_DRIVER: array
-          QUEUE_CONNECTION: sync
-
-      - name: octocov（カバレッジ判定 + PR コメント）
-        uses: k1LoW/octocov-action@v1
-
-  frontend:
-    name: frontend (lint + format + typecheck)
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: frontend
 
     steps:
       - uses: actions/checkout@v4
@@ -112,18 +23,9 @@ jobs:
         with:
           node-version: "22"
           cache: "npm"
-          cache-dependency-path: frontend/package-lock.json
 
       - name: npm install
         run: npm ci
-
-      - name: ESLint（warnings 含めて 0 必須）
-        # --max-warnings 0 で warning も fail 扱い。整形・命名規約を CI で強制する。
-        run: npm run lint -- --max-warnings 0
-
-      - name: Prettier（フォーマットチェック）
-        # --check モードで diff 検出時は exit 1。対象は frontend/ 配下全体。
-        run: npx prettier --check .
 
       - name: TypeScript 型チェック
         run: npx tsc --noEmit

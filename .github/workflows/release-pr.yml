@@ -1,8 +1,5 @@
 name: Create Release PR (develop → main)
 
-# develop → main の Release PR を作成／更新するワークフロー。
-# 実行者ごとの差分を無くすため、PR の作成は必ずこのワークフロー経由で行う（手動 `gh pr create` 禁止）。
-
 on:
   workflow_dispatch:
 
@@ -14,118 +11,17 @@ jobs:
   create-release-pr:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Calculate next deploy date (JST, Tue or Thu)
-        id: deploy-date
-        run: |
-          # futsuu-db のデプロイ日は火曜または木曜を想定（インフラ構築後に確定）。
-          # dispatch 実行日（JST）が火/木ならその日、それ以外は最短の火/木を採用する。
-          # 曜日文字列も case 内で確定させ、locale 依存（date +%a）を避ける。
-          DOW=$(TZ='Asia/Tokyo' date +%u)
-          case "$DOW" in
-            1) DAYS=1; DOW_JA="火" ;;  # 月 → 翌火
-            2) DAYS=0; DOW_JA="火" ;;  # 火 → 当日
-            3) DAYS=1; DOW_JA="木" ;;  # 水 → 翌木
-            4) DAYS=0; DOW_JA="木" ;;  # 木 → 当日
-            5) DAYS=4; DOW_JA="火" ;;  # 金 → 翌火
-            6) DAYS=3; DOW_JA="火" ;;  # 土 → 翌火
-            7) DAYS=2; DOW_JA="火" ;;  # 日 → 翌火
-          esac
-          if [ "$DAYS" -eq 0 ]; then
-            DEPLOY_DATE=$(TZ='Asia/Tokyo' date +%Y/%m/%d)
-          else
-            DEPLOY_DATE=$(TZ='Asia/Tokyo' date -d "+${DAYS} days" +%Y/%m/%d)
-          fi
-          echo "deploy_date=${DEPLOY_DATE}" >> "$GITHUB_OUTPUT"
-          echo "deploy_dow_ja=${DOW_JA}" >> "$GITHUB_OUTPUT"
-
-      - name: Build PR body file
+      - name: Release PR を作成または更新
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ACTOR: ${{ github.actor }}
-          DEPLOY_DATE: ${{ steps.deploy-date.outputs.deploy_date }}
-          DEPLOY_DOW_JA: ${{ steps.deploy-date.outputs.deploy_dow_ja }}
         run: |
           set -euo pipefail
 
-          # main..develop のメインライン commit から PR 番号を抽出し、各 PR のタイトル・作者を取得。
-          # futsuu-db は merge commit（"Merge pull request #N from ..."）と
-          # squash merge（件名末尾が "(#N)"）の両方が混在するため、
-          # --first-parent でメインラインだけを辿り、両形式の正規表現で拾う。
-          PR_LIST_FILE=$(mktemp)
-          PR_NUMBERS=$(git log origin/main..origin/develop --first-parent --pretty='%s' \
-            | sed -nE 's/^Merge pull request #([0-9]+) from .*/\1/p; s/.*\(#([0-9]+)\)$/\1/p' \
-            | awk '!seen[$0]++')
-
-          if [ -z "$PR_NUMBERS" ]; then
-            echo "（マージ済み PR は検出されませんでした）" >> "$PR_LIST_FILE"
-          else
-            while IFS= read -r PR_NUM; do
-              # gh pr view が失敗してもループ全体は止めない（|| でフォールバック行を出力）
-              # PR タイトル内の Markdown 特殊文字を `\` でエスケープして本文に埋める。
-              # 防ぎたいもの:
-              #   - @user / @org/team による意図しない mention 通知
-              #   - [text](url) によるリンク化（フィッシング誘導）
-              #   - <tag> による HTML 解釈
-              #   - `code` などによる Markdown 整形の崩れ
-              #   - &#64; など HTML 数値文字参照経由での mention 抑止漏れ（& も escape）
-              #   - ~~strikethrough~~ など GFM 拡張の整形崩れ（~ も escape）
-              # （HTML エンティティ化や code span ラップは @ 以外の Markdown 注入を防げないため採用しない）
-              gh pr view "$PR_NUM" --json number,title,author \
-                --jq '"- #\(.number) \(.title | gsub("(?<c>[\\\\`*_{}\\[\\]()#+\\-.!|<>@&~])"; "\\\(.c)")) (@\(.author.login))"' \
-                >> "$PR_LIST_FILE" \
-                || echo "- #${PR_NUM} (情報取得失敗)" >> "$PR_LIST_FILE"
-            done <<< "$PR_NUMBERS"
-          fi
-
-          # PR 本文をファイルに書き出して --body-file で渡す
-          # （特殊文字を含む PR タイトルでも安全に渡せるようにするため）
-          BODY_FILE="${RUNNER_TEMP}/release-pr-body.md"
-          {
-            echo "## デプロイ予定日"
-            echo ""
-            echo "**${DEPLOY_DATE} (${DEPLOY_DOW_JA}) 22:00 以降**"
-            echo ""
-            echo "- futsuu-db のデプロイ日は **火曜 または 木曜** を想定（インフラ構築後に確定）"
-            echo "- マージ作業は **22:00 以降** に実施する"
-            echo "- main へのマージで本番デプロイが自動実行される想定（インフラ構築後・詳細は docs/runbooks/deployment.md）"
-            echo ""
-            echo "## 実行者"
-            echo ""
-            echo "@${ACTOR}"
-            echo ""
-            echo "## 含まれる変更"
-            echo ""
-            cat "$PR_LIST_FILE"
-          } > "$BODY_FILE"
-
-          echo "BODY_FILE=${BODY_FILE}" >> "$GITHUB_ENV"
-
-      - name: Create or update Release PR
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DEPLOY_DATE: ${{ steps.deploy-date.outputs.deploy_date }}
-        run: |
-          set -euo pipefail
-
-          TITLE="Release: ${DEPLOY_DATE}"
-
-          # 通常 base:main, head:develop の open PR は1件しか存在しないが、
-          # 万一複数 open になっていたら最初の1件のみを上書きし、警告を出す
-          OPEN_COUNT=$(gh pr list \
-            --base main \
-            --head develop \
-            --state open \
-            --json number \
-            --jq 'length')
-
-          if [ "$OPEN_COUNT" -gt 1 ]; then
-            echo "::warning::base:main, head:develop の open PR が ${OPEN_COUNT} 件あります。最初の1件のみ更新します。"
-          fi
+          TITLE="Release: $(TZ='Asia/Tokyo' date +%Y/%m/%d)"
 
           EXISTING_PR=$(gh pr list \
             --base main \
@@ -135,21 +31,15 @@ jobs:
             --jq '.[0].number // empty')
 
           if [ -n "$EXISTING_PR" ]; then
-            echo "Updating existing PR #${EXISTING_PR}"
-            gh pr edit "$EXISTING_PR" --title "$TITLE" --body-file "$BODY_FILE"
-            URL=$(gh pr view "$EXISTING_PR" --json url --jq '.url')
+            gh pr edit "$EXISTING_PR" --title "$TITLE"
+            echo "Release PR #${EXISTING_PR} を更新しました"
           else
-            echo "Creating new PR"
-            URL=$(gh pr create \
+            gh pr create \
               --base main \
               --head develop \
               --title "$TITLE" \
-              --body-file "$BODY_FILE")
-          fi
+              --body "## 含まれる変更
 
-          echo "Release PR: ${URL}"
-          {
-            echo "### Release PR"
-            echo "- ${URL}"
-            echo "- Deploy date: ${DEPLOY_DATE} 22:00 以降"
-          } >> "$GITHUB_STEP_SUMMARY"
+$(git log origin/main..origin/develop --first-parent --pretty='- %s')"
+            echo "Release PR を作成しました"
+          fi
