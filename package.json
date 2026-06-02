@@ -1,10 +1,11 @@
 {
-  "name": "expo-todo-tmp",
+  "name": "expo-todo-app",
   "version": "1.0.0",
-  "main": "index.ts",
+  "main": "expo-router/entry",
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "~56.0.8",
+    "expo-router": "~56.2.8",
     "expo-status-bar": "~56.0.4",
     "nativewind": "^4.2.4",
     "react": "19.2.3",

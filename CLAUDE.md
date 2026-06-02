@@ -35,7 +35,6 @@ expo-todo-app/
 ├── CLAUDE.md
 ├── README.md
 ├── app.json
-├── App.tsx               # エントリーポイント
 ├── global.css            # NativeWind用CSSエントリー
 ├── tailwind.config.js
 ├── metro.config.js
@@ -50,6 +49,7 @@ expo-todo-app/
 │   ├── decisions/        # ADR（技術選定の記録）
 │   └── architecture.md   # アーキテクチャ概要
 ├── app/                  # Expo Router 画面
+│   ├── _layout.tsx       # ルートレイアウト（GestureHandlerRootView）
 │   ├── index.tsx         # List Screen
 │   └── add-edit.tsx      # Add/Edit Screen
 ├── components/           # 再利用コンポーネント
@@ -75,16 +75,29 @@ expo-todo-app/
 ```
 main       ← 本番。直接コミット禁止
 develop    ← 開発。機能ブランチのマージ先
-  ├── feat/#6-todo-list-layout
-  ├── fix/#xxx-bug-description
-  └── chore/#1-expo-setup
+  ├── feat/#123-todo-list-layout    ← 新機能
+  ├── fix/#456-async-storage-bug   ← バグ修正
+  └── chore/#789-setup             ← ビルド・設定
+# 命名規則: <type>/#<Issue番号>-<内容の kebab-case>
+# すべてのブランチは develop から作成する
 ```
 
 ### rebase 運用
 
-[MUST] タスクブランチへの develop の取り込みは `git rebase` を使う
-[MUST] PR を出す前に `git rebase origin/develop` を実行する
+[MUST] タスクブランチへの develop の取り込みは `git merge` ではなく `git rebase` を使う
+[MUST] PR を出す前に必ず `git rebase origin/develop` を実行する
+
+❌ `git merge origin/develop`
+✅ `git fetch origin && git rebase origin/develop`
+
+コンフリクト解消後は `git rebase --continue` で再開する。
+
 [MUST] force push は `--force-with-lease`。`--force` 禁止
+
+❌ `git push --force`
+✅ `git push --force-with-lease`
+
+[MUST] develop / main ブランチでは rebase 禁止（共有ブランチの歴史を書き換えない）
 
 ### マージ戦略
 
