@@ -32,18 +32,19 @@ export default function AddEditScreen() {
       <Stack.Screen options={{ title: isEdit ? "Todoを編集" : "Todoを追加" }} />
 
       <Text className="text-sm font-medium text-gray-600" style={{ marginBottom: 6 }}>タイトル</Text>
-      <TextInput
-        value={title}
-        onChangeText={(text) => {
-          setTitle(text)
-          if (error) setError("")
-        }}
-        placeholder="例: 牛乳を買う"
-        placeholderTextColor="#9ca3af"
-        autoFocus
-        className="border border-gray-300 rounded-xl text-base text-gray-800 bg-gray-50"
-        style={{ paddingHorizontal: 16, paddingVertical: 14 }}
-      />
+      <View style={{ height: 52, borderWidth: 1, borderColor: '#d1d5db', borderRadius: 12, backgroundColor: '#f9fafb', justifyContent: 'center' }}>
+        <TextInput
+          value={title}
+          onChangeText={(text) => {
+            setTitle(text)
+            if (error) setError("")
+          }}
+          placeholder="例: 牛乳を買う"
+          placeholderTextColor="#9ca3af"
+          autoFocus
+          style={{ paddingHorizontal: 16, fontSize: 16, color: '#1f2937' }}
+        />
+      </View>
       {error ? (
         <Text className="text-red-500 text-sm mt-1">{error}</Text>
       ) : null}
