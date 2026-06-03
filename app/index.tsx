@@ -1,10 +1,15 @@
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from "react-native"
-import { Stack, router } from "expo-router"
+import { Stack, router, useFocusEffect } from "expo-router"
+import { useCallback } from "react"
 import TodoItem from "../components/TodoItem"
 import { useTodos } from "../hooks/useTodos"
 
 export default function ListScreen() {
-  const { todos, loading } = useTodos()
+  const { todos, loading, loadTodos } = useTodos()
+
+  useFocusEffect(useCallback(() => {
+    loadTodos()
+  }, [loadTodos]))
 
   return (
     <View className="flex-1 bg-gray-50">
