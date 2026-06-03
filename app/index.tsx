@@ -5,7 +5,7 @@ import TodoItem from "../components/TodoItem"
 import { useTodos } from "../hooks/useTodos"
 
 export default function ListScreen() {
-  const { todos, loading, loadTodos, toggleTodo } = useTodos()
+  const { todos, loading, loadTodos, toggleTodo, deleteTodo } = useTodos()
 
   useFocusEffect(useCallback(() => {
     loadTodos()
@@ -35,7 +35,7 @@ export default function ListScreen() {
               onPress={() =>
                 router.push({ pathname: "/add-edit", params: { id: item.id } })
               }
-              onDelete={() => {}}
+              onDelete={() => deleteTodo(item.id)}
             />
           )}
           contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 96 }}
