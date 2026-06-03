@@ -1,22 +1,20 @@
-import { View, Text, FlatList, TouchableOpacity } from "react-native"
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from "react-native"
 import { Stack, router } from "expo-router"
 import TodoItem from "../components/TodoItem"
-import type { Todo } from "../types"
-
-const MOCK_TODOS: Todo[] = [
-  { id: "1", title: "牛乳を買う", completed: false, createdAt: "2026-06-03T00:00:00.000Z" },
-  { id: "2", title: "ジムに行く", completed: true, createdAt: "2026-06-03T00:00:00.000Z" },
-  { id: "3", title: "読書する", completed: false, createdAt: "2026-06-03T00:00:00.000Z" },
-]
+import { useTodos } from "../hooks/useTodos"
 
 export default function ListScreen() {
-  const todos = MOCK_TODOS
+  const { todos, loading } = useTodos()
 
   return (
     <View className="flex-1 bg-gray-50">
       <Stack.Screen options={{ title: "Todoリスト" }} />
 
-      {todos.length === 0 ? (
+      {loading ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#3b82f6" />
+        </View>
+      ) : todos.length === 0 ? (
         <View className="flex-1 items-center justify-center gap-1">
           <Text className="text-gray-400 text-base">Todoがありません</Text>
           <Text className="text-gray-300 text-sm">右下の＋ボタンから追加しましょう</Text>
