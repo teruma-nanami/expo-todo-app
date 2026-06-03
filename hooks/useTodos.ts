@@ -46,9 +46,15 @@ export function useTodos() {
     await saveTodos(next)
   }
 
+  const toggleTodo = async (id: string) => {
+    const next = todos.map((t) => t.id === id ? { ...t, completed: !t.completed } : t)
+    setTodos(next)
+    await saveTodos(next)
+  }
+
   useEffect(() => {
     loadTodos()
   }, [loadTodos])
 
-  return { todos, loading, loadTodos, addTodo, updateTodo }
+  return { todos, loading, loadTodos, addTodo, updateTodo, toggleTodo }
 }
