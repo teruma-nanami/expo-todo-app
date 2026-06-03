@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react"
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import * as Crypto from "expo-crypto"
 import type { Todo } from "../types"
 
 const STORAGE_KEY = "todos"
@@ -11,7 +12,7 @@ export function useTodos() {
   const loadTodos = useCallback(async () => {
     try {
       const json = await AsyncStorage.getItem(STORAGE_KEY)
-      if (json) setTodos(JSON.parse(json))
+      setTodos(json ? JSON.parse(json) : [])
     } catch (e) {
       console.error("AsyncStorage 読み込みエラー:", e)
     } finally {
@@ -27,9 +28,27 @@ export function useTodos() {
     }
   }
 
+  const addTodo = async (title: string) => {
+    const newTodo: Todo = {
+      id: Crypto.randomUUID(),
+      title: title.trim(),
+      completed: false,
+      createdAt: new Date().toISOString(),
+    }
+    const next = [...todos, newTodo]
+    setTodos(next)
+    await saveTodos(next)
+  }
+
+  const updateTodo = async (id: string, title: string) => {
+    const next = todos.map((t) => t.id === id ? { ...t, title: title.trim() } : t)
+    setTodos(next)
+    await saveTodos(next)
+  }
+
   useEffect(() => {
     loadTodos()
   }, [loadTodos])
 
-  return { todos, loading, saveTodos, setTodos }
+  return { todos, loading, loadTodos, addTodo, updateTodo }
 }

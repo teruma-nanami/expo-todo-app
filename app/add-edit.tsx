@@ -5,7 +5,7 @@ import { useTodos } from "../hooks/useTodos"
 
 export default function AddEditScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>()
-  const { todos } = useTodos()
+  const { todos, addTodo, updateTodo } = useTodos()
   const [title, setTitle] = useState("")
   const [error, setError] = useState("")
 
@@ -18,12 +18,16 @@ export default function AddEditScreen() {
     }
   }, [id, todos])
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!title.trim()) {
       setError("タイトルを入力してください")
       return
     }
-    // 保存処理は #9 で実装
+    if (id) {
+      await updateTodo(id, title)
+    } else {
+      await addTodo(title)
+    }
     router.back()
   }
 
