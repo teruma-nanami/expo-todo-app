@@ -52,9 +52,15 @@ export function useTodos() {
     await saveTodos(next)
   }
 
+  const deleteTodo = async (id: string) => {
+    const next = todos.filter((t) => t.id !== id)
+    setTodos(next)
+    await saveTodos(next)
+  }
+
   useEffect(() => {
     loadTodos()
   }, [loadTodos])
 
-  return { todos, loading, loadTodos, addTodo, updateTodo, toggleTodo }
+  return { todos, loading, loadTodos, addTodo, updateTodo, toggleTodo, deleteTodo }
 }
