@@ -35,6 +35,7 @@ export default function ListScreen() {
               onPress={() =>
                 router.push({ pathname: "/add-edit", params: { id: item.id } })
               }
+              onDelete={() => {}}
             />
           )}
           contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 96 }}
